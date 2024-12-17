@@ -33,7 +33,7 @@ function generateZPL(customer_name, order_number, boxNumber, total_boxes) {
 }
 
 // Маршрут для генерации ZPL
-app.post('/print', (req, res) => {
+app.post('/api/print', (req, res) => {
     const { customer_name, order_number, total_boxes, boxes_in_order, current_box } = req.body;
 
     let zpl = '';

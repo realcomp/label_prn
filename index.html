@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Label printing Zebra</title>
+    <title>Label Printing Zebra</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
@@ -20,6 +20,9 @@
         .btn {
             margin-top: 10px;
         }
+        .output-container {
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
@@ -27,95 +30,89 @@
         <h1>Label Printing Form</h1>
         <form id="labelForm">
             <div class="mb-3">
-                <label for="customer_name" class="form-label">Customer name</label>
-                <input type="text" class="form-control" id="customer_name" required>
+                <label for="customer_name" class="form-label">Customer Name</label>
+                <input type="text" class="form-control" id="customer_name" required placeholder="Enter customer name">
             </div>
             <div class="mb-3">
-                <label for="order_number" class="form-label">Order number</label>
-                <input type="text" class="form-control" id="order_number" required>
+                <label for="order_number" class="form-label">Order Number</label>
+                <input type="text" class="form-control" id="order_number" required placeholder="Enter order number">
             </div>
             <div class="mb-3">
-                <label for="total_boxes" class="form-label">Total boxes in order</label>
-                <input type="number" class="form-control" id="total_boxes" min="1" required>
+                <label for="total_boxes" class="form-label">Total Boxes in Order</label>
+                <input type="number" class="form-control" id="total_boxes" min="1" required placeholder="Enter total boxes">
             </div>
             <div class="mb-3">
-                <label for="boxes_in_order" class="form-label">Ready boxes number</label>
-                <input type="number" class="form-control" id="boxes_in_order" min="1" required>
+                <label for="boxes_in_order" class="form-label">Ready Boxes Number</label>
+                <input type="number" class="form-control" id="boxes_in_order" min="1" required placeholder="Enter ready boxes number">
             </div>
             <div class="mb-3">
-                <label for="current_box" class="form-label">Print ONE (!!) label for box number</label>
-                <input type="number" class="form-control" id="current_box" min="1">
-            </div>
-            <!-- Поля для адреса и порта принтера -->
-            <div class="mb-3">
-                <label for="printer_host" class="form-label">Printer host IP</label>
-                <input type="text" class="form-control" id="printer_host" value="192.168.0.100">
+                <label for="current_box" class="form-label">Print ONE (!!) Label for Box Number</label>
+                <input type="number" class="form-control" id="current_box" min="1" placeholder="Enter box number to print">
             </div>
             <div class="mb-3">
-                <label for="printer_port" class="form-label">Printer port</label>
-                <input type="number" class="form-control" id="printer_port" value="9100">
+                <label for="printer_host" class="form-label">Printer Host IP</label>
+                <input type="text" class="form-control" id="printer_host" value="192.168.0.100" placeholder="Printer IP">
             </div>
-            <button type="button" class="btn btn-primary" onclick="generateZPL()">Generate ZPL</button>
-            <button type="button" class="btn btn-success" onclick="sendToPrinter()">Direct print</button>
-        </form>
-        <h3 class="mt-4">Результат ZPL:</h3>
-        <pre id="zplOutput" class="border p-3 bg-light" style="height: 200px; overflow-y: auto;"></pre>
-    </div>
-
+            <div class="mb-3">
+                <label for="printer_port" class="form-label">Printer Port</label>
+                <input type="number" class="form-control" id="printer_port" value="9100" placeholder="Printer port">
+            </div>
+<button type="button" class="btn btn-primary" onclick="generateZPL()">Generate ZPL</button>
+<button type="button" class="btn btn-secondary" onclick="copyToClipboard()">Copy to Clipboard</button>        </form>
 
         <div class="output-container">
-            <h3>Result data file:</h3>
+            <h3>Result ZPL Code:</h3>
             <pre id="zplOutput" class="border p-3 bg-light" style="height: 200px; overflow-y: auto;"></pre>
-            <button class="btn btn-secondary" onclick="copyToClipboard()">Copy to clipboard</button>
+            <button class="btn btn-secondary" onclick="copyToClipboard()">Copy to Clipboard</button>
         </div>
     </div>
 
     <script>
-        // Генерация ZPL и отображение в блоке
-        function generateZPL() {
-            const formData = {
-                customer_name: document.getElementById('customer_name').value,
-                order_number: document.getElementById('order_number').value,
-                total_boxes: document.getElementById('total_boxes').value,
-                boxes_in_order: document.getElementById('boxes_in_order').value,
-                boxNumber: document.getElementById('current_box').value
-            };
+    // Генерация ZPL и отображение результата
+    function generateZPL() {
+        const formData = {
+            customer_name: document.getElementById('customer_name').value,
+            order_number: document.getElementById('order_number').value,
+            total_boxes: document.getElementById('total_boxes').value,
+            boxes_in_order: document.getElementById('boxes_in_order').value,
+            current_box: document.getElementById('current_box').value
+        };
 
-            fetch('/api/print', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('zplOutput').textContent = data.zpl;
-            })
-            .catch(err => console.error('Error:', err));
+        // Проверка на заполненность обязательных полей
+        if (!formData.customer_name || !formData.order_number || !formData.total_boxes) {
+            alert("Please fill out all required fields!");
+            return;
         }
 
-        // Отправка ZPL на принтер
-        function sendToPrinter() {
-            const zpl = document.getElementById('zplOutput').textContent;
-            const printer_host = document.getElementById('printer_host').value;
-            const printer_port = document.getElementById('printer_port').value;
+        fetch('/api/print', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Server error: " + response.statusText);
+            return response.text();
+        })
+        .then(data => {
+            document.getElementById('zplOutput').textContent = data; // Вставка результата ZPL в блок
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert("Failed to generate ZPL: " + err.message);
+        });
+    }
 
-            fetch('/send-to-printer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ zpl, printer_host, printer_port })
-            })
-            .then(response => response.text())
-            .then(message => alert(message))
-            .catch(err => console.error('Error sending to printer:', err));
+    // Копирование результата ZPL-кода в буфер обмена
+    function copyToClipboard() {
+        const zplOutput = document.getElementById('zplOutput').textContent;
+        if (!zplOutput) {
+            alert("No ZPL code to copy!");
+            return;
         }
-
-        // Копирование результата ZPL
-        function copyToClipboard() {
-            const zplOutput = document.getElementById('zplOutput');
-            navigator.clipboard.writeText(zplOutput.textContent)
-                .then(() => alert('ZPL-code copied to clipboard'))
-                .catch(err => console.error('Copying error:', err));
-        }
-    </script>
+        navigator.clipboard.writeText(zplOutput)
+            .then(() => alert('ZPL code copied to clipboard!'))
+            .catch(err => console.error('Copy failed:', err));
+    }
+</script>
 </body>
 </html>
