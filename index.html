@@ -62,39 +62,27 @@
         <pre id="zplOutput" class="border p-3 bg-light" style="height: 200px; overflow-y: auto;"></pre>
     </div>
 
-    <script>
-        function generateZPL() {
-            const formData = {
-                customer_name: document.getElementById('customer_name').value,
-                order_number: document.getElementById('order_number').value,
-                total_boxes: document.getElementById('total_boxes').value,
-                boxes_in_order: document.getElementById('boxes_in_order').value,
-                current_box: document.getElementById('current_box').value,
-            };
+ <script>
+    function generateZPL() {
+        const formData = {
+            customer_name: document.getElementById('customer_name').value,
+            order_number: document.getElementById('order_number').value,
+            total_boxes: document.getElementById('total_boxes').value,
+            boxNumber: document.getElementById('current_box').value
+        };
 
-            fetch('/print', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(formData)
-            })
-            .then(response => response.text())
-            .then(zpl => document.getElementById('zplOutput').textContent = zpl);
-        }
+        fetch('/api/print', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('zplOutput').textContent = data.zpl;
+        })
+        .catch(err => console.error('Ошибка:', err));
+    }
+</script>
 
-        function sendToPrinter() {
-            const zpl = document.getElementById('zplOutput').textContent;
-            const printer_host = document.getElementById('printer_host').value;
-            const printer_port = document.getElementById('printer_port').value;
-
-            fetch('/send-to-printer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ zpl, printer_host, printer_port })
-            })
-            .then(response => response.text())
-            .then(message => alert(message))
-            .catch(err => console.error('Ошибка:', err));
-        }
-    </script>
 </body>
 </html>
