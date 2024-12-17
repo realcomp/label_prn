@@ -62,27 +62,60 @@
         <pre id="zplOutput" class="border p-3 bg-light" style="height: 200px; overflow-y: auto;"></pre>
     </div>
 
- <script>
-    function generateZPL() {
-        const formData = {
-            customer_name: document.getElementById('customer_name').value,
-            order_number: document.getElementById('order_number').value,
-            total_boxes: document.getElementById('total_boxes').value,
-            boxNumber: document.getElementById('current_box').value
-        };
 
-        fetch('/api/print', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
-        })
-        .then(response => response.json())
-        .then(data => {
-            document.getElementById('zplOutput').textContent = data.zpl;
-        })
-        .catch(err => console.error('Ошибка:', err));
-    }
-</script>
+        <div class="output-container">
+            <h3>Result data file:</h3>
+            <pre id="zplOutput" class="border p-3 bg-light" style="height: 200px; overflow-y: auto;"></pre>
+            <button class="btn btn-secondary" onclick="copyToClipboard()">Copy to clipboard</button>
+        </div>
+    </div>
 
+    <script>
+        // Генерация ZPL и отображение в блоке
+        function generateZPL() {
+            const formData = {
+                customer_name: document.getElementById('customer_name').value,
+                order_number: document.getElementById('order_number').value,
+                total_boxes: document.getElementById('total_boxes').value,
+                boxes_in_order: document.getElementById('boxes_in_order').value,
+                boxNumber: document.getElementById('current_box').value
+            };
+
+            fetch('/api/print', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('zplOutput').textContent = data.zpl;
+            })
+            .catch(err => console.error('Error:', err));
+        }
+
+        // Отправка ZPL на принтер
+        function sendToPrinter() {
+            const zpl = document.getElementById('zplOutput').textContent;
+            const printer_host = document.getElementById('printer_host').value;
+            const printer_port = document.getElementById('printer_port').value;
+
+            fetch('/send-to-printer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ zpl, printer_host, printer_port })
+            })
+            .then(response => response.text())
+            .then(message => alert(message))
+            .catch(err => console.error('Error sending to printer:', err));
+        }
+
+        // Копирование результата ZPL
+        function copyToClipboard() {
+            const zplOutput = document.getElementById('zplOutput');
+            navigator.clipboard.writeText(zplOutput.textContent)
+                .then(() => alert('ZPL-code copied to clipboard'))
+                .catch(err => console.error('Copying error:', err));
+        }
+    </script>
 </body>
 </html>
