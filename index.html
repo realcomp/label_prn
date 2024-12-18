@@ -70,46 +70,50 @@
     </div>
 
     <script>
-        // Генерация ZPL и отображение результата
-        async function generateZPL() {
-            const formData = {
-                customer_name: document.getElementById('customer_name').value,
-                order_number: document.getElementById('order_number').value,
-                total_boxes: document.getElementById('total_boxes').value,
-                boxes_in_order: document.getElementById('boxes_in_order').value,
-                current_box: document.getElementById('current_box').value
-            };
+// Генерация ZPL и отображение результата
+async function generateZPL() {
+    const formData = {
+        customer_name: document.getElementById('customer_name').value,
+        order_number: document.getElementById('order_number').value,
+        total_boxes: document.getElementById('total_boxes').value,
+        boxes_in_order: document.getElementById('boxes_in_order').value,
+        current_box: document.getElementById('current_box').value
+    };
 
-            if (!formData.customer_name || !formData.order_number || !formData.total_boxes) {
-                alert("Please fill out all required fields!");
-                return;
-            }
+    if (!formData.customer_name || !formData.order_number || !formData.total_boxes) {
+        alert("Please fill out all required fields!");
+        return;
+    }
 
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const output = document.getElementById('zplOutput');
-            loadingIndicator.style.display = 'block';
-            output.textContent = '';
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    const output = document.getElementById('zplOutput');
+    
+    // Отображаем индикатор
+    output.textContent = '';
+    loadingIndicator.style.display = 'block';
 
-            try {
-                const response = await fetch('/api/print', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
+    // Используем setTimeout для небольшого отложения выполнения функции
+    setTimeout(async () => {
+        try {
+            const response = await fetch('/api/print', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData)
+            });
 
-                if (!response.ok) throw new Error("Server error: " + response.statusText);
+            if (!response.ok) throw new Error("Server error: " + response.statusText);
 
-                const data = await response.text();
-                output.textContent = data;
+            const data = await response.text();
+            output.textContent = data;
 
-            } catch (err) {
-                console.error("Error:", err);
-                alert("Failed to generate ZPL: " + err.message);
-            } finally {
-                loadingIndicator.style.display = 'none';
-            }
+        } catch (err) {
+            console.error("Error:", err);
+            alert("Failed to generate ZPL: " + err.message);
+        } finally {
+            loadingIndicator.style.display = 'none';
         }
-
+    }, 10); // Задержка в 10 миллисекунд
+}
         // Отправка ZPL на принтер
         async function sendToPrinter() {
             const zpl = document.getElementById('zplOutput').textContent;
