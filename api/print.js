@@ -19,9 +19,12 @@ export default function handler(req, res) {
     if (req.method === 'POST') {
         const { customer_name, order_number, total_boxes, boxes_in_order, current_box } = req.body;
 
+        // Логируем данные для отладки
+        console.log('Received data:', { customer_name, order_number, total_boxes, boxes_in_order, current_box });
+
         let zpl = '';
 
-        // Генерация ZPL
+        // Если указан номер текущей коробки, печатаем только одну этикетку
         if (current_box) {
             zpl += `
 ^XA
@@ -37,7 +40,9 @@ export default function handler(req, res) {
 
 
             `;
-        } else {
+        } 
+        // Если указано количество коробок в заказе, печатаем для каждой
+        else if (boxes_in_order) {
             for (let i = 1; i <= boxes_in_order; i++) {
                 zpl += `
 ^XA
@@ -52,6 +57,9 @@ export default function handler(req, res) {
 ^XZ
                 `;
             }
+        } else {
+            res.status(400).send('Missing required data: current_box or boxes_in_order');
+            return;
         }
 
         res.status(200).json({ zpl });
