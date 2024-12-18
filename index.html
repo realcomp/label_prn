@@ -81,7 +81,7 @@
             };
 
             if (!formData.customer_name || !formData.order_number || !formData.total_boxes) {
-                showError("Please fill out all required fields!");
+                alert("Please fill out all required fields!");
                 return;
             }
 
@@ -90,25 +90,23 @@
             output.textContent = '';
             loadingIndicator.style.display = 'block';
 
-            setTimeout(async () => {
-                try {
-                    const response = await fetch('/api/print', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(formData)
-});
+            try {
+                const response = await fetch('/api/print', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
 
-                    if (!response.ok) throw new Error("Server error: " + response.statusText);
+                if (!response.ok) throw new Error("Server error: " + response.statusText);
 
-                    const data = await response.text();
-                    output.textContent = data;
-
-                } catch (err) {
-                    showError("Failed to generate ZPL: " + err.message);
-                } finally {
-                    loadingIndicator.style.display = 'none';
-                }
-            }, 10); // небольшая задержка
+                const data = await response.json();
+                output.textContent = data.zpl;
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Failed to generate ZPL: " + err.message);
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
         }
 
         // Отправка ZPL на принтер
@@ -118,23 +116,23 @@
             const printer_port = document.getElementById('printer_port').value;
 
             if (!zpl) {
-                showError("No ZPL code to send!");
+                alert("No ZPL code to send!");
                 return;
             }
 
-            setTimeout(async () => {
-                try {
-                    const response = await fetch('/api/send-to-printer', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ zpl, printer_host, printer_port })
-});
-                    const result = await response.text();
-                    alert(result);
-                } catch (err) {
-                    showError("Failed to send ZPL to printer: " + err.message);
-                }
-            }, 10);
+            try {
+                const response = await fetch('/api/send-to-printer', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ zpl, printer_host, printer_port })
+                });
+
+                const result = await response.text();
+                alert(result);
+            } catch (err) {
+                console.error("Error:", err);
+                alert("Failed to send ZPL to printer: " + err.message);
+            }
         }
 
         // Копирование ZPL-кода в буфер обмена
@@ -142,20 +140,13 @@
             const zplOutput = document.getElementById('zplOutput').textContent;
 
             if (!zplOutput) {
-                showError("No ZPL code to copy!");
+                alert("No ZPL code to copy!");
                 return;
             }
 
-            setTimeout(() => {
-                navigator.clipboard.writeText(zplOutput)
-                    .then(() => alert('ZPL code copied to clipboard!'))
-                    .catch(err => showError('Copy failed: ' + err));
-            }, 10);
-        }
-
-        // Функция для отображения ошибок
-        function showError(message) {
-            alert(message);
+            navigator.clipboard.writeText(zplOutput)
+                .then(() => alert('ZPL code copied to clipboard!'))
+                .catch(err => alert('Copy failed: ' + err));
         }
     </script>
 </body>
