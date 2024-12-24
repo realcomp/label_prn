@@ -4,7 +4,7 @@ export default async function handler(req, res) {
     if (req.method === 'POST') {
         const { zpl, printer_host, printer_port } = req.body;
 
-        const PRINTER_HOST = printer_host || '192.168.0.100';
+        const PRINTER_HOST = printer_host || '100.102.217.25';
         const PRINTER_PORT = printer_port || 9100;
 
         const client = new net.Socket();
